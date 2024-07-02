@@ -1,6 +1,8 @@
+#define __TARGET_ARCH_x86
 #include <linux/bpf.h>
 #include <linux/ptrace.h>
 #include <bpf/bpf_helpers.h>
+#include <bpf/bpf_tracing.h>
 #include <linux/sched.h>
 #include <linux/limits.h>
 
@@ -25,7 +27,7 @@ struct {
     __uint(max_entries, 1);
     __type(key, __u32);
     __type(value, char[MAX_LINE_SIZE]);
-} filename_map SEC(".maps");
+} command_map SEC(".maps");
 
 struct {
     __uint(type, BPF_MAP_TYPE_HASH);
@@ -33,7 +35,6 @@ struct {
     __type(value, __u32);
     __uint(max_entries, 1024);
 } shell_processes SEC(".maps");
-
 
 static __always_inline int strings_compare(const char *str1, const char *str2) {
     int i = 0;
@@ -49,34 +50,49 @@ static __always_inline int strings_compare(const char *str1, const char *str2) {
     }
 }
 
+SEC("uretprobe//bin/bash:readline")
+int BPF_KRETPROBE(readline_hook, const void *ret) {
+    char str[MAX_LINE_SIZE];
+    char comm[TASK_COMM_LEN];
+    __u32 key = 0;
+
+    if (!ret)
+        return 0;
+
+    bpf_get_current_comm(&comm, sizeof(comm));
+    bpf_probe_read_user_str(str, sizeof(str), ret);
+
+    bpf_printk("Readline captured: %s\n", str);
+
+    bpf_map_update_elem(&command_map, &key, str, BPF_ANY);
+
+    return 0;
+}
+
 SEC("tracepoint/syscalls/sys_enter_execve")
 int on_execve(struct execve_args *ctx) {
     char comm[TASK_COMM_LEN];
+    char *str;
     __u32 pid;
+    __u32 key = 0;
     int i;
 
-    bpf_printk("Intercepting execve\n");
+  //  bpf_printk("Intercepting execve\n");
 
     bpf_get_current_comm(&comm, sizeof(comm));
     pid = bpf_get_current_pid_tgid() >> 32;
 
-    // Use per-CPU array map for filename
-    __u32 key = 0;
 
-    
-    char *filename = bpf_map_lookup_elem(&filename_map, &key);
-    bpf_printk("Filename: %s\n", filename);
-    if (!filename) {
-        bpf_printk("Filename map lookup failed\n");
+    str = bpf_map_lookup_elem(&command_map, &key);
+    if (!str) {
+        bpf_printk("Command map lookup failed\n");
         return 0;
     }
-    bpf_probe_read_user_str(filename, MAX_LINE_SIZE, ctx->filename);
 
-    bpf_printk("Command: %s Filename: %s PID: %d\n", comm, filename, pid);
+//    bpf_printk("Command: %s\n", str);
 
     // Check if the current process is a shell
     for (i = 0; i < NUM_SHELL_NAMES; i++) {
-
         if (strings_compare(comm, shell_names[i]) == 0) {
             __u32 value = 1;
             bpf_map_update_elem(&shell_processes, &pid, &value, BPF_ANY);
@@ -90,29 +106,19 @@ int on_execve(struct execve_args *ctx) {
     __u32 ppid = ppid_tgid >> 32;
 
     __u32 *is_shell = bpf_map_lookup_elem(&shell_processes, &ppid);
-
+    
+    //bpf_printk("is shell: %d\n", is_shell);
+    //bpf_printk("Command issss: %s\n", str);
     if (is_shell) {
         // Check the command and its arguments
+        // bpf_printk("inside the shell check\n");
         for (i = 0; i < NUM_PROHIBITED_COMMANDS; i++) {
-            if (strings_compare(filename, prohibited_commands[i]) == 0) {
-                bpf_printk("Blocked command: %s by %s (pid: %d)\n", filename, comm, pid);
+            if (strings_compare(str, prohibited_commands[i]) == 0) {
+                bpf_printk("Blocked command: %s by %s\n", str, comm);
                 return -1; // Block the command by returning an error
             }
-
-            // Check command line arguments
-             const char **argv = ctx->argv;
-            #pragma unroll
-            for (int j = 1; j < 5; j++) {
-                char arg[MAX_LINE_SIZE];
-                bpf_probe_read_user(&arg, sizeof(arg), argv + j);
-                if (arg[0] == '\0') break;  // Stop if the argument is empty
-                if (strings_compare(arg, prohibited_commands[i]) == 0) {
-                    bpf_printk("Blocked command argument: %s by %s (pid: %d)\n", arg, comm, pid);
-                    return -1; // Block the command by returning an error
-                }
-            }
         }
-        bpf_printk("Allowed command: %s by %s (pid: %d)\n", filename, comm, pid);
+        bpf_printk("Allowed command: %s by %s\n", str, comm);
     }
 
     return 0;
