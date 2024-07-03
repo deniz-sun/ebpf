@@ -9,11 +9,13 @@
 #define TASK_COMM_LEN 16
 #define MAX_LINE_SIZE 80
 
+// example commands to block
 const char prohibited_commands[3][16] = {"ps", "top", "ifconfig"};
 #define NUM_PROHIBITED_COMMANDS 3
 
-const char shell_names[3][16] = {"bash", "sh", "zsh"};
-#define NUM_SHELL_NAMES 3
+// types of shells to detect
+const char shell_names[2][16] = {"bash", "zsh"};
+#define NUM_SHELL_NAMES 2
 
 struct execve_args {
     __u64 syscall_nr;
@@ -22,6 +24,7 @@ struct execve_args {
     const char *const *envp;
 };
 
+// Map to store the command read by readline
 struct {
     __uint(type, BPF_MAP_TYPE_PERCPU_ARRAY);
     __uint(max_entries, 1);
@@ -29,6 +32,7 @@ struct {
     __type(value, char[MAX_LINE_SIZE]);
 } command_map SEC(".maps");
 
+// Map to store shell processes
 struct {
     __uint(type, BPF_MAP_TYPE_HASH);
     __type(key, __u32);
@@ -36,6 +40,15 @@ struct {
     __uint(max_entries, 1024);
 } shell_processes SEC(".maps");
 
+
+/*
+    * Compare two strings lexicographically
+    * Returns:
+    *  0 if the strings are equal
+    * -1 if str1 is lexicographically less than str2
+    *  1 if str1 is lexicographically greater than str2
+    
+*/
 static __always_inline int strings_compare(const char *str1, const char *str2) {
     int i = 0;
     for (; str1[i] != '\0' && str2[i] != '\0'; ++i) {
@@ -50,6 +63,10 @@ static __always_inline int strings_compare(const char *str1, const char *str2) {
     }
 }
 
+/*
+    * Uprobe to capture the command read by readline
+    * The command is stored in the command_map
+*/
 SEC("uretprobe//bin/bash:readline")
 int BPF_KRETPROBE(readline_hook, const void *ret) {
     char str[MAX_LINE_SIZE];
@@ -69,6 +86,9 @@ int BPF_KRETPROBE(readline_hook, const void *ret) {
     return 0;
 }
 
+/*
+    * Tracepoint to intercept execve system calls
+*/
 SEC("tracepoint/syscalls/sys_enter_execve")
 int on_execve(struct execve_args *ctx) {
     char comm[TASK_COMM_LEN];
