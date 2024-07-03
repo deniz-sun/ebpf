@@ -1,3 +1,9 @@
+/**
+* Title: Loader
+* Author : Deniz Sun
+* Description : This is a loader program for the eBPF program block.c. It loads the eBPF program, attaches it to the tracepoint, and reads the output from the trace_pipe.
+*/
+
 #include <bpf/libbpf.h>
 #include <err.h>
 #include <stdio.h>

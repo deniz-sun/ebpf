@@ -1,3 +1,9 @@
+/**
+* Title: Block
+* Author : Deniz Sun
+* Description : This eBPF program captures shell processes and the commands they execute. It is used to block certain commands from being executed by shell processes.
+*/
+
 #define __TARGET_ARCH_x86
 #include <linux/bpf.h>
 #include <linux/ptrace.h>
