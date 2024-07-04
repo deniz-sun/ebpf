@@ -362,11 +362,13 @@ This compiles the loader into an object which can then be run with sudo permissi
 ## **Monitoring and Blocking Command Line arguments**
 This application is for monitoring shell command lines and possibly block unwanted comments. Currently the blocking functionality does not stop execution but the bash commands are detected and printed with the related process id.
 Compile and run with eunomia-bpf tools
-   ./ecc track.c
+   
+    ./ecc track.c
    
     sudo ./ecli run package.json
 
 Open the trace pipe to check the output
+
     sudo cat /sys/kernel/debug/tracing/trace_pipe
 
 ## **Helpful Links and Some Example eBPF Projects**
