@@ -1,14 +1,14 @@
-**BPF - Berkeley Packet Filter**
+## **BPF - Berkeley Packet Filter**
 
 BPF is a type of packet filter that runs in the Linux kernel. BPF is usually used to capture and analyze packets efficiently. For example, tcpdump is used with BPF to quickly filter out irrelevant packets. However BPF is not sufficient for handling HTTP sessions. BPF allows to inspect a payload of individual packets while HTTP sessions compose of multiple TCP packets so it is not enough to handle this filtering.
 
-**eBPF - Extended Berkeley Packet Filter**
+## **eBPF - Extended Berkeley Packet Filter**
 
 Extended BPF, eBPF, was created for this. eBPF (extended Berkeley Packet Filter) is a revolutionary technology that allows users to run sandboxed programs in the Linux kernel without changing kernel source code or loading kernel modules \[1]. This technology is being used for many purposes such as networking, security, and observability. It allows adding hooks to functions and system calls. This provides visibility into traffic payloads and function results. Hence, it can be used to handle complex functionality such as layer-7 filtering independently of the application sending data to the kernel \[2].
 
 In these project files, x86 architecture is used with the operating system Ubuntu 22.04.
 
-**Requirements**
+## **Requirements**
 
 Install Linux Headers
 
@@ -36,7 +36,7 @@ To solve this asm include issue, the following line can be used to link it to th
 
     sudo ln -s /usr/include/x86_64-linux-gnu/asm /usr/include/asm
 
-**BPF Helper Functions**
+## **BPF Helper Functions**
 
 Since eBPF programs are written in restricted C and compiled into eBPF bytecode, some of the C libraries and functionalities cannot be used. eBPF offers many helper functions for multiple purposes. Some examples can be seen below.
 
@@ -108,11 +108,11 @@ To use certain BPF helpers, it must be licensed under a GPL-compatible license. 
 
     char LICENSE[] SEC("license") = "GPL";
 
-**Compilation & Execution with Eunomia’s BPF Framework**
+## **Compilation & Execution with Eunomia’s BPF Framework**
 
 Eunomia offers a compiler and runtime toolchain framework, “eunomia-bpf” with the aim of building and distributing eBPF programs more easily. 
 
-**Download and Install eunomia-bpf Development Tools**
+### **Download and Install eunomia-bpf Development Tools**
 
 This subsection information and guide is taken directly from Eunomia’s documentation \[3]. 
 
@@ -202,7 +202,7 @@ Ecli tool is used to run the compiled program (package.json)
 
     sudo ./ecli run package.json
 
-**Tracing**
+### **Tracing**
 
 Linux’s trace pipe can be used to check the output of the eBPF program.
 
@@ -210,7 +210,7 @@ Linux’s trace pipe can be used to check the output of the eBPF program.
 
 ‌
 
-**Compilation and Execution with a Loader Program**
+## **Compilation and Execution with a Loader Program**
 
 An additional way of running the eBPF program is by using a loader written in C. The eBPF program is compiled as usual with clang compiler and the loader is compiled with gcc with the lbpf flag. This is for linking against libbpf, the library that loads BPF programs into the kernel. After being linked by the loader program with libbpf in the user space, the eBPF program runs in the kernel space.
 
@@ -358,14 +358,14 @@ This compiles the loader into an object which can then be run with sudo permissi
 
     sudo ./track_loader
 
-**Helpful Links and Some Example eBPF Projects**
+## **Helpful Links and Some Example eBPF Projects**
 
 **Bad BPF**
 
 A collection of malicious eBPF programs that make use of eBPF's ability to read and write user data in between the usermode program and the kernel [4].
 
 
-**References**
+##B **References**
 
 \[1] “What is eBPF? An Introduction and Deep Dive into the eBPF Technology,” _www\.ebpf.io_. <https://ebpf.io/what-is-ebpf/> (accessed Jun. 24, 2024).
 
