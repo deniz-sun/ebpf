@@ -358,6 +358,17 @@ This compiles the loader into an object which can then be run with sudo permissi
 
     sudo ./track_loader
 
+
+## **Monitoring and Blocking Command Line arguments**
+This application is for monitoring shell command lines and possibly block unwanted comments. Currently the blocking functionality does not stop execution but the bash commands are detected and printed with the related process id.
+Compile and run with eunomia-bpf tools
+   ./ecc track.c
+   
+    sudo ./ecli run package.json
+
+Open the trace pipe to check the output
+    sudo cat /sys/kernel/debug/tracing/trace_pipe
+
 ## **Helpful Links and Some Example eBPF Projects**
 
 **Bad BPF**
@@ -365,7 +376,7 @@ This compiles the loader into an object which can then be run with sudo permissi
 A collection of malicious eBPF programs that make use of eBPF's ability to read and write user data in between the usermode program and the kernel [4].
 
 
-##B **References**
+## **References**
 
 \[1] “What is eBPF? An Introduction and Deep Dive into the eBPF Technology,” _www\.ebpf.io_. <https://ebpf.io/what-is-ebpf/> (accessed Jun. 24, 2024).
 
