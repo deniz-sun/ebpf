@@ -377,9 +377,11 @@ This compiles the loader into an object which can then be run with sudo permissi
 ## **Monitoring and Blocking Command Line arguments**
 This application is for monitoring shell command lines and possibly block unwanted comments. [Work in progress]
 
+The file is located under the /eunomia folder and it is called "block.c".
+
 Compile and run with eunomia-bpf tools
    
-    ./ecc track.c
+    ./ecc block.c
    
     sudo ./ecli run package.json
 
