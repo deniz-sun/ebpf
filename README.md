@@ -1,3 +1,20 @@
+## Table of Contents
+
+1. [Introduction](#introduction)
+2. [BPF - Berkeley Packet Filter](#bpf---berkeley-packet-filter)
+3. [eBPF - Extended Berkeley Packet Filter](#ebpf---extended-berkeley-packet-filter)
+4. [Requirements](#requirements)
+5. [BPF Helper Functions](#bpf-helper-functions)
+6. [Compilation & Execution with Eunomia’s BPF Framework](#compilation--execution-with-eunomias-bpf-framework)
+7. [Compilation and Execution with a Loader Program](#compilation-and-execution-with-a-loader-program)
+8. [Monitoring and Blocking Command Line arguments](#monitoring-and-blocking-command-line-arguments)
+9. [Helpful Links and Some Example eBPF Projects](#helpful-links-and-some-example-ebpf-projects)
+10. [References](#references)
+
+## **Introduction**
+
+This repository contains various eBPF test projects aimed at demonstrating the capabilities and functionalities of the eBPF technology. The projects include examples of packet filtering, function tracing, and command-line monitoring. This README provides detailed instructions on setting up the environment, compiling, and executing the eBPF programs.
+
 ## **BPF - Berkeley Packet Filter**
 
 BPF is a type of packet filter that runs in the Linux kernel. BPF is usually used to capture and analyze packets efficiently. For example, tcpdump is used with BPF to quickly filter out irrelevant packets. However BPF is not sufficient for handling HTTP sessions. BPF allows to inspect a payload of individual packets while HTTP sessions compose of multiple TCP packets so it is not enough to handle this filtering.
@@ -6,9 +23,23 @@ BPF is a type of packet filter that runs in the Linux kernel. BPF is usually use
 
 Extended BPF, eBPF, was created for this. eBPF (extended Berkeley Packet Filter) is a revolutionary technology that allows users to run sandboxed programs in the Linux kernel without changing kernel source code or loading kernel modules \[1]. This technology is being used for many purposes such as networking, security, and observability. It allows adding hooks to functions and system calls. This provides visibility into traffic payloads and function results. Hence, it can be used to handle complex functionality such as layer-7 filtering independently of the application sending data to the kernel \[2].
 
-In these project files, x86 architecture is used with the operating system Ubuntu 22.04.
 
 ## **Requirements**
+
+### **Prerequisites**
+
+Ensure that you have the following prerequisites before proceeding with the setup:
+
+- Any recent Ubuntu distribution. Ubuntu 22.04 was used for this project.
+- Administrative (sudo) access to your system
+- Kernel version 4.4 or later.
+
+You can check the kernel version by running
+
+    uname -r
+
+
+### **Set up**
 
 Step 1: Update your package manager
     
@@ -63,6 +94,11 @@ One particular issue that might be encountered is the following include error.
 To solve this asm include issue, the following line can be used to link it to the the linux headers.
 
     sudo ln -s /usr/include/x86_64-linux-gnu/asm /usr/include/asm
+
+For debugging and monitoring purposes, tools like bpftool, bpftrace and perf can be used.
+
+    sudo apt-get install -y bpftool bpftrace linux-perf
+
 
 ## **BPF Helper Functions**
 
