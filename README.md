@@ -14,9 +14,9 @@ Step 1: Update your package manager
     
     sudo apt-get update
 
-Step 2: Install LLVM and Clang (you might want to specify a version)
+Step 2: Install necessary build dependencies
     
-    sudo apt-get install -y llvm clang
+    sudo apt-get install -y build-essential gcc make libelf-dev clang llvm libnl-genl-3-dev pkg-config
 
 Step 3: Install BCC tools
 For Ubuntu, specific instructions are available in the IOVisor project documentation
@@ -26,11 +26,21 @@ For Ubuntu, specific instructions are available in the IOVisor project documenta
     sudo apt-get update
     sudo apt-get install -y bcc-tools libbcc-examples linux-headers-$(uname -r)
 
-Step 4: Install additional development tools and libraries
-    
-    sudo apt-get install -y libelf-dev gcc make
+Step 4: Clone the libbpf repository
 
-Step 5: Install the Linux headers for your current kernel version
+    git clone https://github.com/libbpf/libbpf.git
+
+Step 5: Build libbpf
+
+    cd libbpf/src
+    make
+
+Step 6: Install libbpf
+
+    sudo make install
+    sudo ldconfig
+
+Step 7: Install the Linux headers for your current kernel version
     
     sudo apt-get install -y linux-headers-$(uname -r)
 
