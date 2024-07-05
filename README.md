@@ -10,13 +10,29 @@ In these project files, x86 architecture is used with the operating system Ubunt
 
 ## **Requirements**
 
-Install Linux Headers
+Step 1: Update your package manager
+    
+    sudo apt-get update
 
-    sudo apt install linux-headers-$(uname -r)
+Step 2: Install LLVM and Clang (you might want to specify a version)
+    
+    sudo apt-get install -y llvm clang
 
-Clang and LLVM are used to compile eBPF programs. 
+Step 3: Install BCC tools
+For Ubuntu, specific instructions are available in the IOVisor project documentation
+    
+    echo "deb [signed-by=/usr/share/keyrings/iovisor-archive-keyring.gpg] https://repo.iovisor.org/apt/$(lsb_release -cs) $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/iovisor.list
+    sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 4052245BD4284CDD
+    sudo apt-get update
+    sudo apt-get install -y bcc-tools libbcc-examples linux-headers-$(uname -r)
 
-    sudo apt install clang llvm
+Step 4: Install additional development tools and libraries
+    
+    sudo apt-get install -y libelf-dev gcc make
+
+Step 5: Install the Linux headers for your current kernel version
+    
+    sudo apt-get install -y linux-headers-$(uname -r)
 
 One particular issue that might be encountered is the following include error.
 
@@ -110,7 +126,7 @@ To use certain BPF helpers, it must be licensed under a GPL-compatible license. 
 
 ## **Compilation & Execution with Eunomia’s BPF Framework**
 
-Eunomia offers a compiler and runtime toolchain framework, “eunomia-bpf” with the aim of building and distributing eBPF programs more easily. 
+Eunomia offers a compiler and runtime toolchain framework, “eunomia-bpf” [3] with the aim of building and distributing eBPF programs more easily. 
 
 ### **Download and Install eunomia-bpf Development Tools**
 
@@ -130,7 +146,7 @@ Download the compiler toolchain for compiling eBPF kernel code into config files
     ./ecc -h
 
 
-It can also be compiled using the docker image:
+Or if Docker is installed, it can also be compiled using the docker image:
 
     docker run -it -v `pwd`/:/src/ ghcr.io/eunomia-bpf/ecc-`uname -m`:latest 
     # Compile using docker. `pwd` should contain *.bpf.c files and *.h files.
@@ -198,13 +214,13 @@ Another way to compile is using a docker image:
 
  
 
-Ecli tool is used to run the compiled program (package.json)
+"ecli" tool is used to run the compiled program (package.json)
 
     sudo ./ecli run package.json
 
 ### **Tracing**
 
-Linux’s trace pipe can be used to check the output of the eBPF program.
+Linux’s trace pipe can be used to check the output of the eBPF program. Open the trace pipe in another terminal.
 
     sudo cat /sys/kernel/debug/tracing/trace_pipe
 
@@ -252,8 +268,7 @@ The eBPF program called track.c is compiled using:
 
     clang -O2 -target bpf -o track.o -c track.c
 
-To load and attach this eBPF program, the following sample loader program can be used. It also opens the trace pipe and prints the output on the console.
-
+To load and attach this eBPF program, the following sample loader program can be used. It also opens the trace pipe and prints the output on the console so there is no need to manually open the trace pipe.
 **track\_loader.c**
 
     #include <bpf/libbpf.h>
@@ -360,7 +375,8 @@ This compiles the loader into an object which can then be run with sudo permissi
 
 
 ## **Monitoring and Blocking Command Line arguments**
-This application is for monitoring shell command lines and possibly block unwanted comments. Currently the blocking functionality does not stop execution but the bash commands are detected and printed with the related process id.
+This application is for monitoring shell command lines and possibly block unwanted comments. [Work in progress]
+
 Compile and run with eunomia-bpf tools
    
     ./ecc track.c
@@ -370,12 +386,25 @@ Compile and run with eunomia-bpf tools
 Open the trace pipe to check the output
 
     sudo cat /sys/kernel/debug/tracing/trace_pipe
+    
+Currently the blocking functionality does not stop execution but shell processes and bash commands are detected and printed with the related process id.
 
 ## **Helpful Links and Some Example eBPF Projects**
 
 **Bad BPF**
 
-A collection of malicious eBPF programs that make use of eBPF's ability to read and write user data in between the usermode program and the kernel [4].
+"A collection of malicious eBPF programs that make use of eBPF's ability to read and write user data in between the usermode program and the kernel [4]."
+This repository features maliciously intented eBPF programs that can be altered to use for security purposes.
+
+
+**BPF Time**
+
+bpftime, a full-featured, high-performance eBPF runtime designed to operate in userspace. It offers fast Uprobe and Syscall hook capabilities: Userspace uprobe can be 10x faster than kernel uprobe and can programmatically hook all syscalls of a process safely and efficiently [5].
+
+
+**Packet Filtering Firewall**
+
+This is a packet filtering firewall project that uses eBPF to offer a flexible and powerful way of protecting netwrok from bad actors [6]. 
 
 
 ## **References**
@@ -384,6 +413,11 @@ A collection of malicious eBPF programs that make use of eBPF's ability to read 
 
 \[2] Datadog, “A practical guide to capturing production traffic with eBPF,” _Datadog_, Nov. 10, 2022. https\://www\.datadoghq.com/blog/ebpf-guide/ (accessed Jun. 24, 2024).
 
-\[3]“eBPF Tutorial by Example 1: Hello World, Framework and Development - eunomia,” _eunomia.dev_. https\://eunomia.dev/tutorials/1-helloworld/ (accessed Jul. 02, 2024).
+\[3] “eBPF Tutorial by Example 1: Hello World, Framework and Development - eunomia,” _eunomia.dev_. https\://eunomia.dev/tutorials/1-helloworld/ (accessed Jul. 02, 2024).
 
-\[4] "Bad BPF" https://github.com/pathtofile/bad-bpf?tab=readme-ov-file#write-blocker
+\[4] “pathtofile/bad-bpf,” https://github.com/pathtofile/bad-bpf?tab=readme-ov-file#write-blocker (accessed Jul. 03, 2024).
+
+\[5] “bpftime: Userspace eBPF runtime for fast Uprobe & Syscall Hook & Extensions - eunomia,” eunomia.dev. https://eunomia.dev/bpftime/#roadmap (accessed Jul. 02, 2024).
+‌
+\[6] “How We Used eBPF to Build Programmable Packet Filtering in Magic Firewall,” The Cloudflare Blog, Dec. 06, 2021. https://blog.cloudflare.com/programmable-packet-filtering-with-magic-firewall (accessed Jul. 05, 2024).
+‌
