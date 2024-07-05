@@ -26,23 +26,25 @@ For Ubuntu, specific instructions are available in the IOVisor project documenta
     sudo apt-get update
     sudo apt-get install -y bcc-tools libbcc-examples linux-headers-$(uname -r)
 
-Step 4: Clone the libbpf repository
+Step 4: Install the Linux headers for your current kernel version
+    
+    sudo apt-get install -y linux-headers-$(uname -r)
+
+Step 5: Clone the libbpf repository
 
     git clone https://github.com/libbpf/libbpf.git
 
-Step 5: Build libbpf
+Step 6: Build libbpf
 
     cd libbpf/src
     make
 
-Step 6: Install libbpf
+Step 7: Install libbpf
 
     sudo make install
     sudo ldconfig
 
-Step 7: Install the Linux headers for your current kernel version
-    
-    sudo apt-get install -y linux-headers-$(uname -r)
+
 
 One particular issue that might be encountered is the following include error.
 
